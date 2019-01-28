@@ -27,13 +27,15 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
          */
         public static $log = false;
 
+        protected $returnHandler = null;
+
         /**
          * Constructor for the gateway.
          */
         public function __construct()
         {
             $this->id = 'omnipay-va';
-            $this->has_fields = false;
+            $this->has_fields = true;
 
             $this->method_title = __('OmniPay VA', 'woocommerce');
             /* translators: %s: Link to WC system status page */
@@ -61,7 +63,7 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
                 $this->enabled = 'no';
             } else {
                 include_once __DIR__ . '/includes/return-handler.php';
-                new ReturnHandler();
+                $this->returnHandler = new ReturnHandler($this->settings['verify_key']);
             }
 
             // shows VA on THANK YOU page..
@@ -176,6 +178,38 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
             $this->form_fields = include 'includes/settings-omnipay.php';
         }
 
+        public function payment_fields()
+        {
+            $description = $this->get_description();
+            if ($description) {
+                echo wpautop(wptexturize($description)); // @codingStandardsIgnoreLine.
+            }
+
+            require_once __DIR__ . '/includes/bank-details.php'
+
+            ?>
+            <fieldset>
+                <p class="form-row form-row-wide woocommerce-validated">
+                    <label for="selected_va">Pilih Bank <span class="required">*</span></label>
+                    <select name="<?= $this->id ?>_selected_va" id="selected_va">
+                        <?php foreach (BankDetails as $bank => $detail):
+                            if ($this->settings[$bank]):
+                                ?>
+                                <option value="<?= $bank ?>"><?= $detail['nama'] ?></option>
+                                <?php
+                            endif;
+                        endforeach; ?>
+                    </select>
+                </p>
+            </fieldset>
+            <script>
+                jQuery(function ($) {
+                    $('#selected_va').selectWoo()
+                })
+            </script>
+            <?php
+        }
+
         /**
          * Process the payment and return the result.
          *
@@ -185,16 +219,24 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
         public function process_payment($order_id)
         {
             require_once __DIR__ . '/includes/va-creator.php';
+            require_once __DIR__ . '/includes/bank-details.php';
 
             $order = wc_get_order($order_id);
 
             $va_channels = array();
 
-            $banks = explode(',', 'permata,artajasa,cimb');
-
-            foreach ($banks as $bank) {
+            foreach (BankDetails as $bank => $detail) {
                 if ($this->settings[$bank])
                     $va_channels[] = $bank;
+            }
+
+            $choosen = $_POST['omnipay-va_selected_va'];
+
+            if(in_array($choosen, $va_channels)) {
+                $va_channels = array($choosen);
+            } else {
+                wc_add_notice( __('Payment error:', 'woothemes') . 'invalid BANK selected', 'error' );
+                return;
             }
 
             $amount = $order->get_total() + ($this->settings['fee'] ? $this->settings['fee'] : 0);
@@ -210,20 +252,19 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
                 $amount, $invoiceid, $bill_name, $bill_email, $bill_mobile, $bill_desc, $expiry_minute);
 
             $success = 0;
+            $failures = array();
 
             foreach ($vas as $idx => $va) {
                 if (is_object($va) && $va->bank && $va->va) {
                     ++$success;
                 } else {
-                    wc_add_notice("{$va_channels[$idx]}: $va", 'failed');
+                    $failures[] = "{$va_channels[$idx]}: $va";
                 }
             }
 
             if ($success < 1) {
-                return array(
-                    'result' => 'failed',
-                    'redirect' => $this->get_return_url($order),
-                );
+                wc_add_notice( __('Payment error:', 'woothemes') . $failures[0], 'error' );
+                return;
             }
 
             // save the va numbers..

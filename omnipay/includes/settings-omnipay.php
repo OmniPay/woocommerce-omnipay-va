@@ -2,7 +2,9 @@
 
 defined('ABSPATH') || exit;
 
-return array(
+require_once __DIR__ . '/bank-details.php';
+
+$settings = array(
     'title' => array(
         'title' => __('Title', 'woocommerce'),
         'type' => 'text',
@@ -52,22 +54,15 @@ return array(
         'default' => __('', 'woocommerce'),
         'desc_tip' => true,
     ),
-    'permata' => array(
-        'title' => __('VA Permata', 'woocommerce'),
-        'type' => 'checkbox',
-        'label' => __('Tampilkan virtual account Bank Permata', 'woocommerce'),
-        'default' => 'yes',
-    ),
-    'artajasa' => array(
-        'title' => __('VA Bank Jaringan Bersama', 'woocommerce'),
-        'type' => 'checkbox',
-        'label' => __('Tampilkan virtual account Bank Jaringan Bersama', 'woocommerce'),
-        'default' => 'yes',
-    ),
-    'cimb' => array(
-        'title' => __('VA CIMB', 'woocommerce'),
-        'type' => 'checkbox',
-        'label' => __('Tampilkan virtual account Bank CIMB', 'woocommerce'),
-        'default' => 'yes',
-    ),
 );
+
+foreach (\WooOmniPayID\BankDetails as $bank=>$detail) {
+    $settings[$bank] = array(
+        'title' => __('VA '. $detail['nama'], 'woocommerce'),
+        'type' => 'checkbox',
+        'label' => __('Tampilkan virtual account ' . $detail['nama'], 'woocommerce'),
+        'default' => 'yes',
+    );
+}
+
+return $settings;
