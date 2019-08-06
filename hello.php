@@ -5,7 +5,7 @@
  */
 /*
 Plugin Name: WooCommerce OmniPay.id VA
-Description: Payment gateway OmniPay.ID Virtual Account for WooCommerce
+Description: Virtual Account Payment gateway OmniPay.ID for WooCommerce
 Author: PT. Aneka Piranti Perkasa
 Version: 1.0.0
 Author URI: http://omnipay.co.id/developer

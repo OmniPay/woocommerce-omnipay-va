@@ -10,18 +10,20 @@ if (!defined('ABSPATH')) {
 class ReturnHandler
 {
     var $verify_key;
+    var $merchant_id;
 
     /**
      * Constructor.
      *   this will be called when a request is made to
      *   http://localhost/woo/?wc-api=omnipay-va-id
      */
-    public function __construct($verify_key)
+    public function __construct($verify_key, $merchant_id)
     {
         // Now we set that function up to execute when the admin_notices action is called
         add_action('woocommerce_api_omnipay-va-id', array($this, 'check_callback'));
 
         $this->verify_key = $verify_key;
+        $this->merchant_id = $merchant_id;
     }
 
 

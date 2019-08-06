@@ -63,7 +63,7 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
                 $this->enabled = 'no';
             } else {
                 include_once __DIR__ . '/includes/return-handler.php';
-                $this->returnHandler = new ReturnHandler($this->settings['verify_key']);
+                $this->returnHandler = new ReturnHandler($this->settings['verify_key'], $this->settings['merchant_id']);
             }
 
             // shows VA on THANK YOU page..
@@ -203,9 +203,9 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
                 </p>
             </fieldset>
             <script>
-                jQuery(function ($) {
-                    $('#selected_va').selectWoo()
-                })
+              jQuery(function ($) {
+                $('#selected_va').selectWoo()
+              })
             </script>
             <?php
         }
@@ -232,10 +232,10 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
 
             $choosen = $_POST['omnipay-va_selected_va'];
 
-            if(in_array($choosen, $va_channels)) {
+            if (in_array($choosen, $va_channels)) {
                 $va_channels = array($choosen);
             } else {
-                wc_add_notice( __('Payment error:', 'woothemes') . 'invalid BANK selected', 'error' );
+                wc_add_notice(__('Payment error:', 'woothemes') . 'invalid BANK selected', 'error');
                 return;
             }
 
@@ -263,7 +263,7 @@ if (!class_exists('\WooOmniPayID\OmnipayVa')) {
             }
 
             if ($success < 1) {
-                wc_add_notice( __('Payment error:', 'woothemes') . $failures[0], 'error' );
+                wc_add_notice(__('Payment error:', 'woothemes') . $failures[0], 'error');
                 return;
             }
 
