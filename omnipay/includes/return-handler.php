@@ -88,7 +88,7 @@ class ReturnHandler
                 // proses pembayaran..
                 $order = wc_get_order($orderid);
                 if ($order && $check_currency == 'IDR') {
-                    if ($order->get_total() > $check_amount) {
+                    if ($check_amount >= $order->get_total()) {
                         die('Invalid Amount!');
                     }
                     // process_payment($orderid, $amount, $paydate, $tranID, $channel);
